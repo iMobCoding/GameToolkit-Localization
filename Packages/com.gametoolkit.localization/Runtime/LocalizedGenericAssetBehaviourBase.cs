@@ -1,4 +1,4 @@
-// Copyright (c) H. Ibrahim Penekli. All rights reserved.
+﻿// Copyright (c) H. Ibrahim Penekli. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
@@ -36,19 +36,29 @@ namespace GameToolkit.Localization
             }
 #endif
 
-            if (HasLocalizedValue() && m_PropertyInfo != null)
+            if (!HasLocalizedValue() || m_PropertyInfo == null)
             {
-#if UNITY_EDITOR
-                if (!Application.isPlaying)
-                {
-                    UnityEditor.Undo.RecordObject(m_Component, "Locale value change");
-                }
-#endif
-                m_PropertyInfo.SetValue(m_Component, GetLocalizedValue(), null);
-                return true;
+                return false;
             }
 
-            return false;
+            var newValue = GetLocalizedValue();
+            var canRead = m_PropertyInfo.CanRead;
+            if (canRead)
+            {
+                var currentValue = m_PropertyInfo.GetValue(m_Component, null);
+                if (AreValuesEqual(currentValue, newValue))
+                {
+                    return false;
+                }
+            }
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                UnityEditor.Undo.RecordObject(m_Component, "Locale value change");
+            }
+#endif
+            m_PropertyInfo.SetValue(m_Component, newValue, null);
+            return true;
         }
 
         private void InitializePropertyIfNeeded()
@@ -69,7 +79,7 @@ namespace GameToolkit.Localization
 
             return false;
         }
-        
+
         public bool TrySetComponentAndProperty<TComponent>(string propertyName)
             where TComponent : Component
         {
@@ -77,7 +87,7 @@ namespace GameToolkit.Localization
             if (m_Component != null)
             {
                 m_Property = propertyName;
-                
+
                 if (!TryInitializeProperty())
                 {
                     m_Property = "";
@@ -100,7 +110,7 @@ namespace GameToolkit.Localization
 
             return false;
         }
-        
+
         private PropertyInfo FindProperty(Component component, string propertyName)
         {
             return component.GetType().GetProperty(propertyName, GetValueType());
@@ -123,6 +133,21 @@ namespace GameToolkit.Localization
             }
 
             return properties;
+        }
+
+        private static bool AreValuesEqual(object currentValue, object newValue)
+        {
+            if (ReferenceEquals(currentValue, newValue))
+            {
+                return true;
+            }
+
+            if (currentValue is UnityEngine.Object currentObject && newValue is UnityEngine.Object newObject)
+            {
+                return currentObject == newObject;
+            }
+
+            return Equals(currentValue, newValue);
         }
     }
 }
