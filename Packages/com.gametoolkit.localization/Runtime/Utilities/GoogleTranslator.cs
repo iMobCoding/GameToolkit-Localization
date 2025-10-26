@@ -1,6 +1,5 @@
 // Copyright (c) H. Ibrahim Penekli. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-
 using System;
 using System.Collections;
 using UnityEngine;
@@ -99,7 +98,15 @@ namespace GameToolkit.Localization.Utilities
             Action<TranslationCompletedEventArgs> onCompleted,
             Action<TranslationErrorEventArgs> onError)
         {
-            if (www.isNetworkError || www.isHttpError)
+            var hasError = false;
+#if UNITY_2020_2_OR_NEWER
+            var requestResult = www.result;
+            hasError = requestResult != UnityWebRequest.Result.Success;
+#else
+            hasError = www.isNetworkError || www.isHttpError;
+#endif
+
+            if (hasError)
             {
                 if (onError != null)
                 {
@@ -112,11 +119,11 @@ namespace GameToolkit.Localization.Utilities
                 if (response != null && response.data != null && response.data.translations != null &&
                     response.data.translations.Length > 0)
                 {
-                    var requests = new GoogleTranslateRequest[] {request};
+                    var requests = new GoogleTranslateRequest[] { request };
 
                     var translateResponse = new GoogleTranslateResponse();
                     translateResponse.TranslatedText = response.data.translations[0].translatedText;
-                    var responses = new GoogleTranslateResponse[] {translateResponse};
+                    var responses = new GoogleTranslateResponse[] { translateResponse };
 
                     if (onCompleted != null)
                     {
@@ -152,7 +159,7 @@ namespace GameToolkit.Localization.Utilities
         {
             public JsonTranslation[] translations = null;
         }
-        
+
         [Serializable]
         private class JsonError
         {
@@ -202,7 +209,7 @@ namespace GameToolkit.Localization.Utilities
         /// Error code.
         /// </summary>
         public long ResponseCode { get; private set; }
-        
+
         /// <summary>
         /// Error message.
         /// </summary>
