@@ -1,0 +1,6 @@
+﻿<Solution>
+  <Project Path="Gametoolkit.Localization.Runtime.Tests.csproj" />
+  <Project Path="Gametoolkit.Localization.Runtime.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Gametoolkit.Localization.Editor.csproj" />
+</Solution>
